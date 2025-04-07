@@ -91,26 +91,27 @@ if station_file and results_file:
                     f"between **{start_date}** and **{end_date}**, with values between **{val_range[0]}** and **{val_range[1]}**."
                 )
                 st_folium(folium_map, width=700, height=500)
-                   # === Trend Plot (All Data for Characteristic) ===
-            st.subheader("📈 Trend Over Time for Selected Contaminant (All Data)")
-            fig, ax = plt.subplots(figsize=(10, 5))
-            for site, group in characteristic_df.groupby("MonitoringLocationIdentifier"):
-                group_sorted = group.sort_values("ActivityStartDate")
-                ax.plot(group_sorted["ActivityStartDate"], group_sorted["ResultMeasureValue"], label=site)
-
-            unit = characteristic_df["ResultMeasure/MeasureUnitCode"].mode().iloc[0] if not characteristic_df.empty else ""
-            ax.set_title(f"{selected_characteristic} Over Time (All Sites)")
-            ax.set_xlabel("Date")
-            ax.set_ylabel(f"{selected_characteristic} ({unit})")
-            ax.legend(title="Site", bbox_to_anchor=(1.05, 1), loc='upper left')
-            ax.grid(True)
-            st.pyplot(fig)
-
             else:
                 st.warning("🚫 No stations found that match the filters. Try adjusting your contaminant, date, or value range.")
 
+            # === Trend Plot (Filtered Data Only) ===
+            if not matching_data.empty:
+                st.subheader("📈 Trend Over Time for Selected Contaminant (Filtered Data)")
+                fig, ax = plt.subplots(figsize=(10, 5))
+                for site, group in matching_data.groupby("MonitoringLocationIdentifier"):
+                    group_sorted = group.sort_values("ActivityStartDate")
+                    ax.plot(group_sorted["ActivityStartDate"], group_sorted["ResultMeasureValue"], label=site)
+
+                unit = matching_data["ResultMeasure/MeasureUnitCode"].mode().iloc[0] if not matching_data.empty else ""
+                ax.set_title(f"{selected_characteristic} Over Time (Filtered)")
+                ax.set_xlabel("Date")
+                ax.set_ylabel(f"{selected_characteristic} ({unit})")
+                ax.legend(title="Site", bbox_to_anchor=(1.05, 1), loc='upper left')
+                ax.grid(True)
+                st.pyplot(fig)
+            else:
+                st.warning("📉 No data available in this range to plot a trend.")
         else:
             st.warning("Please select a valid start and end date.")
     else:
         st.warning("No data found for the selected contaminant.")
-
